@@ -1,0 +1,145 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Book Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Book Activity Report</h2>
+            <p class="text-muted mt-2">Comprehensive report of all book activities</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="btn-group">
+                <a href="{% url 'generate_report' %}?type=books" class="btn {% if report_type == 'books' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Books
+                </a>
+                <a href="{% url 'generate_report' %}?type=users" class="btn {% if report_type == 'users' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Users
+                </a>
+                <a href="{% url 'generate_report' %}?type=activity" class="btn {% if report_type == 'activity' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Activity
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Books</h5>
+                    <h2 class="display-4">{{ total_books }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Quantity</h5>
+                    <h2 class="display-4">{{ total_quantity }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Available Books</h5>
+                    <h2 class="display-4">{{ total_available }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Currently Borrowed</h5>
+                    <h2 class="display-4">{{ total_quantity|add:"-"|add:total_available }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Book Popularity Ranking</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Book</th>
+                            <th>ISBN</th>
+                            <th>Genre</th>
+                            <th class="text-center">Total Borrows</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-center">Available</th>
+                            <th class="text-center">Utilization</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="me-3" style="width: 40px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 60px;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ book.title }}</h6>
+                                        <small class="text-muted">{{ book.author }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ book.isbn }}</td>
+                            <td>{{ book.genre }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill">{{ book.borrow_count }}</span>
+                            </td>
+                            <td class="text-center">{{ book.quantity }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-{% if book.available > 0 %}success{% else %}danger{% endif %}">
+                                    {{ book.available }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if book.quantity > 0 %}
+                                    {% with borrowed=book.quantity|add:"-"|add:book.available %}
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if book.available == 0 %}bg-danger{% elif book.available < book.quantity|divisibleby:2 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" style="width: {{ borrowed|floatformat:0 }}%;" 
+                                             aria-valuenow="{{ borrowed }}" aria-valuemin="0" aria-valuemax="{{ book.quantity }}">
+                                        </div>
+                                    </div>
+                                    <small>{{ borrowed }} / {{ book.quantity }}</small>
+                                    {% endwith %}
+                                {% else %}
+                                    <small class="text-muted">N/A</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">No books available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-5">
+        <p class="text-muted">Report generated on: {{ request.timestamp|date:"F d, Y H:i" }}</p>
+    </div>
+</div>
+{% endblock %} 

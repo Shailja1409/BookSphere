@@ -1,0 +1,149 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Edit Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-edit me-2"></i>Edit Book
+                        </h4>
+                        <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ form_data.title|default:book.title }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="author" class="form-label">Author *</label>
+                                    <input type="text" class="form-control" id="author" name="author" value="{{ form_data.author|default:book.author }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="isbn" class="form-label">ISBN *</label>
+                                    <input type="text" class="form-control" id="isbn" name="isbn" value="{{ form_data.isbn|default:book.isbn }}" required>
+                                    <div class="form-text">International Standard Book Number (with or without dashes)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="genre" class="form-label">Genre *</label>
+                                    <select class="form-select" id="genre" name="genre" required>
+                                        <option value="" disabled>Select a genre</option>
+                                        <option value="Fiction" {% if form_data.genre == 'Fiction' or book.genre == 'Fiction' %}selected{% endif %}>Fiction</option>
+                                        <option value="Non-Fiction" {% if form_data.genre == 'Non-Fiction' or book.genre == 'Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                                        <option value="Mystery" {% if form_data.genre == 'Mystery' or book.genre == 'Mystery' %}selected{% endif %}>Mystery</option>
+                                        <option value="Science Fiction" {% if form_data.genre == 'Science Fiction' or book.genre == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                                        <option value="Fantasy" {% if form_data.genre == 'Fantasy' or book.genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                                        <option value="Biography" {% if form_data.genre == 'Biography' or book.genre == 'Biography' %}selected{% endif %}>Biography</option>
+                                        <option value="History" {% if form_data.genre == 'History' or book.genre == 'History' %}selected{% endif %}>History</option>
+                                        <option value="Self-Help" {% if form_data.genre == 'Self-Help' or book.genre == 'Self-Help' %}selected{% endif %}>Self-Help</option>
+                                        <option value="Business" {% if form_data.genre == 'Business' or book.genre == 'Business' %}selected{% endif %}>Business</option>
+                                        <option value="Academic" {% if form_data.genre == 'Academic' or book.genre == 'Academic' %}selected{% endif %}>Academic/Textbook</option>
+                                        <option value="Other" {% if form_data.genre == 'Other' or book.genre == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="cover_image" class="form-label">Cover Image</label>
+                                    <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                                    <div class="form-text">Optional: Upload a new cover image</div>
+                                    <div class="mt-3 text-center">
+                                        <div id="cover-preview" class="bg-light p-3 rounded d-flex align-items-center justify-content-center" style="height: 200px; width: 100%;">
+                                            {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-height: 100%; max-width: 100%;">
+                                            {% else %}
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        {% if not book.cover_image %}
+                                        <div class="mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="auto_fetch_cover" name="auto_fetch_cover" checked>
+                                                <label class="form-check-label" for="auto_fetch_cover">
+                                                    Try to fetch cover automatically
+                                                </label>
+                                            </div>
+                                            <div class="form-text">
+                                                If checked, we'll try to find a cover online after saving
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ form_data.description|default:book.description }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity *</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="{{ form_data.quantity|default:book.quantity }}" required>
+                                    <div class="form-text">Number of copies available in the library</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Availability</label>
+                                    <div class="form-control text-muted bg-light">{{ book.available }} / {{ book.quantity }}</div>
+                                    <div class="form-text">Available copies will adjust automatically if quantity is changed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'book_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Book
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview uploaded image
+    document.getElementById('cover_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('cover-preview');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                preview.innerHTML = `<img src="${event.target.result}" alt="Cover Preview" style="max-height: 100%; max-width: 100%;">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = {% if book.cover_image %}
+                `<img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="max-height: 100%; max-width: 100%;">`;
+            {% else %}
+                `<i class="fas fa-image fa-3x text-muted"></i>`;
+            {% endif %}
+        }
+    });
+</script>
+{% endblock %} 

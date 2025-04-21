@@ -1,0 +1,127 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Add New Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Add New Book
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ form_data.title|default:'' }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="author" class="form-label">Author *</label>
+                                    <input type="text" class="form-control" id="author" name="author" value="{{ form_data.author|default:'' }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="isbn" class="form-label">ISBN *</label>
+                                    <input type="text" class="form-control" id="isbn" name="isbn" value="{{ form_data.isbn|default:'' }}" required>
+                                    <div class="form-text">International Standard Book Number (with or without dashes)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="genre" class="form-label">Genre *</label>
+                                    <select class="form-select" id="genre" name="genre" required>
+                                        <option value="" disabled {% if not form_data.genre %}selected{% endif %}>Select a genre</option>
+                                        <option value="Fiction" {% if form_data.genre == 'Fiction' %}selected{% endif %}>Fiction</option>
+                                        <option value="Non-Fiction" {% if form_data.genre == 'Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                                        <option value="Mystery" {% if form_data.genre == 'Mystery' %}selected{% endif %}>Mystery</option>
+                                        <option value="Science Fiction" {% if form_data.genre == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                                        <option value="Fantasy" {% if form_data.genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                                        <option value="Biography" {% if form_data.genre == 'Biography' %}selected{% endif %}>Biography</option>
+                                        <option value="History" {% if form_data.genre == 'History' %}selected{% endif %}>History</option>
+                                        <option value="Self-Help" {% if form_data.genre == 'Self-Help' %}selected{% endif %}>Self-Help</option>
+                                        <option value="Business" {% if form_data.genre == 'Business' %}selected{% endif %}>Business</option>
+                                        <option value="Academic" {% if form_data.genre == 'Academic' %}selected{% endif %}>Academic/Textbook</option>
+                                        <option value="Other" {% if form_data.genre == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="cover_image" class="form-label">Cover Image</label>
+                                    <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                                    <div class="form-text">Optional: Upload a cover image</div>
+                                    <div class="mt-3 text-center">
+                                        <div id="cover-preview" class="bg-light p-3 rounded d-flex align-items-center justify-content-center" style="height: 200px; width: 100%;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                        <div class="mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="auto_fetch_cover" name="auto_fetch_cover" checked>
+                                                <label class="form-check-label" for="auto_fetch_cover">
+                                                    Try to fetch cover automatically
+                                                </label>
+                                            </div>
+                                            <div class="form-text">
+                                                If checked, we'll try to find a cover online after saving
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ form_data.description|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity *</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="{{ form_data.quantity|default:'1' }}" required>
+                                    <div class="form-text">Number of copies available in the library</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'librarian_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Add Book
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview uploaded image
+    document.getElementById('cover_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('cover-preview');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                preview.innerHTML = `<img src="${event.target.result}" alt="Cover Preview" style="max-height: 100%; max-width: 100%;">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = `<i class="fas fa-image fa-3x text-muted"></i>`;
+        }
+    });
+</script>
+{% endblock %} 

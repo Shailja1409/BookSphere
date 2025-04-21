@@ -1,0 +1,266 @@
+{% extends 'library/base.html' %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-circle me-2"></i>My Dashboard
+                    </h4>
+                    <a href="{% url 'request_book' %}" class="btn btn-success">
+                        <i class="fas fa-book-medical me-2"></i>Request New Book
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Books Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-book-open me-2"></i>Recently Added Books</h5>
+            <a href="{% url 'book_list' %}" class="btn btn-sm btn-outline-primary">View All Books</a>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {% for book in recent_books %}
+                <div class="col">
+                    <div class="card h-100 book-card">
+                        {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-book fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ book.title }}</h6>
+                            <p class="card-text text-muted small mb-2">by {{ book.author }}</p>
+                            <p class="card-text small mb-3">{{ book.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{% if book.available > 0 %}success{% else %}danger{% endif %}">
+                                    {{ book.available }}/{{ book.quantity }} Available
+                                </span>
+                                {% if book.available > 0 %}
+                                <a href="{% url 'borrow_book' book.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-book-reader me-1"></i>Borrow
+                                </a>
+                                {% else %}
+                                <button disabled class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-clock me-1"></i>Unavailable
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <small class="text-muted">
+                                <i class="fas fa-tag me-1"></i>{{ book.genre }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>No new books have been added recently.
+                    </div>
+                    <a href="{% url 'book_list' %}" class="btn btn-primary mt-3">Browse All Books</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-book-open"></i>
+                <h3 class="mb-0">{{ total_count }}</h3>
+                <p class="text-muted mb-0">Total Books Borrowed</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-clock"></i>
+                <h3 class="mb-0">{{ approved_count }}</h3>
+                <p class="text-muted mb-0">Currently Borrowed</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-hourglass-half"></i>
+                <h3 class="mb-0">{{ pending_count }}</h3>
+                <p class="text-muted mb-0">Pending Requests</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>My Borrowed Books</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Book</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for borrow in borrows %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if borrow.book.cover_image %}
+                                    <img src="{{ borrow.book.cover_image.url }}" alt="{{ borrow.book.title }}" class="me-3" style="width: 40px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 60px;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ borrow.book.title }}</h6>
+                                        <small class="text-muted">by {{ borrow.book.author }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ borrow.borrow_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if borrow.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif borrow.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% elif borrow.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                                {% elif borrow.status == 'returned' %}
+                                <span class="badge bg-primary">Returned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if borrow.due_date %}
+                                {{ borrow.due_date|date:"M d, Y" }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'book_detail' borrow.book.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if borrow.status == 'approved' %}
+                                    <a href="#" class="btn btn-sm btn-outline-success" title="Request Return" data-bs-toggle="modal" data-bs-target="#returnModal{{ borrow.id }}">
+                                        <i class="fas fa-undo-alt"></i>
+                                    </a>
+                                    <!-- Return Request Modal -->
+                                    <div class="modal fade" id="returnModal{{ borrow.id }}" tabindex="-1" aria-labelledby="returnModalLabel{{ borrow.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="returnModalLabel{{ borrow.id }}">Return Book: {{ borrow.book.title }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to request a return for this book?</p>
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        {% if borrow.book.cover_image %}
+                                                        <img src="{{ borrow.book.cover_image.url }}" alt="{{ borrow.book.title }}" class="me-3" style="width: 60px; height: 80px; object-fit: cover;">
+                                                        {% else %}
+                                                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 80px;">
+                                                            <i class="fas fa-book fa-2x"></i>
+                                                        </div>
+                                                        {% endif %}
+                                                        <div>
+                                                            <h6 class="mb-1">{{ borrow.book.title }}</h6>
+                                                            <small class="text-muted">by {{ borrow.book.author }}</small>
+                                                            <p class="mb-0 small">Due date: {{ borrow.due_date|date:"M d, Y" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <a href="{% url 'request_return' borrow.id %}" class="btn btn-success">Confirm Return</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <p class="mb-0 text-muted">You haven't borrowed any books yet.</p>
+                                <a href="{% url 'book_list' %}" class="btn btn-primary mt-3">Browse Books</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Borrowing History</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Book</th>
+                            <th>Borrowed Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for borrow in returned_borrows %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if borrow.book.cover_image %}
+                                    <img src="{{ borrow.book.cover_image.url }}" alt="{{ borrow.book.title }}" class="me-3" style="width: 40px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 60px;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ borrow.book.title }}</h6>
+                                        <small class="text-muted">by {{ borrow.book.author }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ borrow.borrow_date|date:"M d, Y" }}</td>
+                            <td>{{ borrow.return_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge bg-primary">Returned</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <p class="text-muted mb-0">No borrowing history available.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

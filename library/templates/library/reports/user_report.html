@@ -1,0 +1,121 @@
+{% extends 'library/base.html' %}
+
+{% block title %}User Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-0"><i class="fas fa-users me-2"></i>User Activity Report</h2>
+            <p class="text-muted mt-2">Comprehensive report of user borrowing activities</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="btn-group">
+                <a href="{% url 'generate_report' %}?type=books" class="btn {% if report_type == 'books' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Books
+                </a>
+                <a href="{% url 'generate_report' %}?type=users" class="btn {% if report_type == 'users' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Users
+                </a>
+                <a href="{% url 'generate_report' %}?type=activity" class="btn {% if report_type == 'activity' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Activity
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="display-4">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Active Users</h5>
+                    <h2 class="display-4">{{ active_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Active Rate</h5>
+                    <h2 class="display-4">{{ active_users|floatformat:0 }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Most Active Users</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th class="text-center">Join Date</th>
+                            <th class="text-center">Total Borrows</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3 rounded-circle" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ user.username }}</h6>
+                                        <small class="text-muted">
+                                            {% if user.userprofile.is_librarian %}
+                                            <span class="badge bg-info">Librarian</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Student</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td class="text-center">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill">{{ user.borrow_count }}</span>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-envelope me-1"></i>Contact
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">No active users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-5">
+        <p class="text-muted">Report generated on: {{ request.timestamp|date:"F d, Y H:i" }}</p>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,199 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Activity Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="mb-0"><i class="fas fa-chart-line me-2"></i>Activity Report</h2>
+            <p class="text-muted mt-2">Detailed report of library borrowing activity</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="btn-group">
+                <a href="{% url 'generate_report' %}?type=books" class="btn {% if report_type == 'books' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Books
+                </a>
+                <a href="{% url 'generate_report' %}?type=users" class="btn {% if report_type == 'users' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Users
+                </a>
+                <a href="{% url 'generate_report' %}?type=activity" class="btn {% if report_type == 'activity' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    Activity
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Activity Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3">
+                                <h6 class="text-muted">Today</h6>
+                                <h3 class="mb-0">{{ activity_today }}</h3>
+                                <small class="text-muted">Borrows</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3">
+                                <h6 class="text-muted">This Week</h6>
+                                <h3 class="mb-0">{{ activity_week }}</h3>
+                                <small class="text-muted">Borrows</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="border rounded p-3">
+                                <h6 class="text-muted">This Month</h6>
+                                <h3 class="mb-0">{{ activity_month }}</h3>
+                                <small class="text-muted">Borrows</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>All-time Activity: {{ total_activity }} borrows</h6>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ pending_count|floatformat:0 }}%;" 
+                                aria-valuenow="{{ pending_count }}" aria-valuemin="0" aria-valuemax="{{ total_activity }}">
+                                Pending ({{ pending_count }})
+                            </div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ approved_count|floatformat:0 }}%;" 
+                                aria-valuenow="{{ approved_count }}" aria-valuemin="0" aria-valuemax="{{ total_activity }}">
+                                Approved ({{ approved_count }})
+                            </div>
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ returned_count|floatformat:0 }}%;" 
+                                aria-valuenow="{{ returned_count }}" aria-valuemin="0" aria-valuemax="{{ total_activity }}">
+                                Returned ({{ returned_count }})
+                            </div>
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ rejected_count|floatformat:0 }}%;" 
+                                aria-valuenow="{{ rejected_count }}" aria-valuemin="0" aria-valuemax="{{ total_activity }}">
+                                Rejected ({{ rejected_count }})
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary rounded-pill me-2">{{ pending_count }}</span>
+                                Pending Requests
+                            </div>
+                            <span class="text-muted">{{ pending_count|floatformat:0 }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-success rounded-pill me-2">{{ approved_count }}</span>
+                                Currently Borrowed
+                            </div>
+                            <span class="text-muted">{{ approved_count|floatformat:0 }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info rounded-pill me-2">{{ returned_count }}</span>
+                                Returned Books
+                            </div>
+                            <span class="text-muted">{{ returned_count|floatformat:0 }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-danger rounded-pill me-2">{{ rejected_count }}</span>
+                                Rejected Requests
+                            </div>
+                            <span class="text-muted">{{ rejected_count|floatformat:0 }}%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Activity</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Book</th>
+                            <th>User</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Due Date</th>
+                            <th class="text-center">Return Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activity %}
+                        <tr>
+                            <td>{{ activity.borrow_date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if activity.book.cover_image %}
+                                    <img src="{{ activity.book.cover_image.url }}" alt="{{ activity.book.title }}" class="me-3" style="width: 40px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 60px;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ activity.book.title }}</h6>
+                                        <small class="text-muted">{{ activity.book.author }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ activity.user.username }}</td>
+                            <td class="text-center">
+                                <span class="badge {% if activity.status == 'pending' %}bg-primary{% elif activity.status == 'approved' %}bg-success{% elif activity.status == 'returned' %}bg-info{% else %}bg-danger{% endif %}">
+                                    {{ activity.status|title }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if activity.due_date %}
+                                {{ activity.due_date|date:"M d, Y" }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if activity.return_date %}
+                                {{ activity.return_date|date:"M d, Y" }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">No activity records found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-5">
+        <p class="text-muted">Report generated on: {{ request.timestamp|date:"F d, Y H:i" }}</p>
+    </div>
+</div>
+{% endblock %} 

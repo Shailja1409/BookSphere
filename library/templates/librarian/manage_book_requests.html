@@ -1,0 +1,242 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Manage Book Requests{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-book-medical me-2"></i>Student Book Requests
+                </h4>
+                <a href="{% url 'librarian_dashboard' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#pending" data-bs-toggle="tab">
+                            Pending <span class="badge bg-warning ms-1">{{ pending_count }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#approved" data-bs-toggle="tab">
+                            Approved <span class="badge bg-success ms-1">{{ approved_count }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#rejected" data-bs-toggle="tab">
+                            Rejected <span class="badge bg-danger ms-1">{{ rejected_count }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="pending">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Requested By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in book_requests %}
+                                {% if request.status == 'pending' %}
+                                <tr>
+                                    <td>{{ request.title }}</td>
+                                    <td>{{ request.author }}</td>
+                                    <td>{{ request.genre }}</td>
+                                    <td>{{ request.user.username }}</td>
+                                    <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ request.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{% url 'process_book_request' request.id 'approve' %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            <a href="{% url 'process_book_request' request.id 'reject' %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-0">No pending book requests at the moment.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="approved">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Requested By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in book_requests %}
+                                {% if request.status == 'approved' %}
+                                <tr>
+                                    <td>{{ request.title }}</td>
+                                    <td>{{ request.author }}</td>
+                                    <td>{{ request.genre }}</td>
+                                    <td>{{ request.user.username }}</td>
+                                    <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ request.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-0">No approved book requests yet.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="rejected">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Requested By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in book_requests %}
+                                {% if request.status == 'rejected' %}
+                                <tr>
+                                    <td>{{ request.title }}</td>
+                                    <td>{{ request.author }}</td>
+                                    <td>{{ request.genre }}</td>
+                                    <td>{{ request.user.username }}</td>
+                                    <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ request.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-0">No rejected book requests yet.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modals -->
+    {% for request in book_requests %}
+    <div class="modal fade" id="detailsModal{{ request.id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ request.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel{{ request.id }}">Book Request Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Book Information</h6>
+                            <p><strong>Title:</strong> {{ request.title }}</p>
+                            <p><strong>Author:</strong> {{ request.author }}</p>
+                            <p><strong>ISBN:</strong> {{ request.isbn|default:"Not provided" }}</p>
+                            <p><strong>Genre:</strong> {{ request.genre }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Request Information</h6>
+                            <p><strong>Requested By:</strong> {{ request.user.username }}</p>
+                            <p><strong>Date:</strong> {{ request.created_at|date:"F d, Y" }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if request.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif request.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% elif request.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="mb-2">Reason for Request</h6>
+                            <div class="p-3 bg-light rounded">
+                                {{ request.reason }}
+                            </div>
+                        </div>
+                    </div>
+                    {% if request.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="mb-2">Additional Notes</h6>
+                            <div class="p-3 bg-light rounded">
+                                {{ request.notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    {% if request.status == 'pending' %}
+                    <a href="{% url 'process_book_request' request.id 'reject' %}" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>Reject
+                    </a>
+                    <a href="{% url 'process_book_request' request.id 'approve' %}" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>Approve
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %} 

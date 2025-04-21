@@ -1,0 +1,537 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-cog me-2"></i>Library Administration
+                        </h4>
+                        <div class="action-buttons">
+                            <a href="{% url 'add_book' %}" class="btn btn-success me-2">
+                                <i class="fas fa-plus-circle me-2"></i>Add New Book
+                            </a>
+                            <a href="{% url 'manage_book_requests' %}" class="btn btn-info me-2">
+                                <i class="fas fa-book-medical me-2"></i>Manage Book Requests
+                            </a>
+                            <a href="{% url 'book_list' %}" class="btn btn-primary">
+                                <i class="fas fa-book me-2"></i>Manage Books
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-book"></i>
+                <h3 class="mb-0">{{ books_count }}</h3>
+                <p class="text-muted mb-0">Total Books</p>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-users"></i>
+                <h3 class="mb-0">{{ users_count }}</h3>
+                <p class="text-muted mb-0">Registered Users</p>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-clock"></i>
+                <h3 class="mb-0">{{ current_borrows }}</h3>
+                <p class="text-muted mb-0">Current Borrows</p>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-exchange-alt"></i>
+                <h3 class="mb-0">{{ total_borrows }}</h3>
+                <p class="text-muted mb-0">Total Transactions</p>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-hourglass-half"></i>
+                <h3 class="mb-0">{{ pending_requests.count }}</h3>
+                <p class="text-muted mb-0">Pending Requests</p>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3 class="mb-0">{{ overdue_books.count }}</h3>
+                <p class="text-muted mb-0">Overdue Books</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>Pending Requests</h5>
+                    <span class="badge bg-primary rounded-pill">{{ pending_requests.count }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Book</th>
+                                    <th>Request Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in pending_requests %}
+                                <tr>
+                                    <td>{{ request.user.username }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if request.book.cover_image %}
+                                            <img src="{{ request.book.cover_image.url }}" alt="{{ request.book.title }}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 45px;">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                            {% endif %}
+                                            <span>{{ request.book.title }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ request.borrow_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'manage_request' request.id 'approve' %}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </a>
+                                            <a href="{% url 'manage_request' request.id 'reject' %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-muted mb-0">No pending requests at the moment.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Overdue Books</h5>
+                    <span class="badge bg-danger rounded-pill">{{ overdue_books.count }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Book</th>
+                                    <th>Due Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for borrow in overdue_books %}
+                                <tr>
+                                    <td>{{ borrow.user.username }}</td>
+                                    <td>{{ borrow.book.title }}</td>
+                                    <td>
+                                        <span class="text-danger">{{ borrow.due_date|date:"M d, Y" }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'return_book' borrow.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-undo me-1"></i>Return
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-muted mb-0">No overdue books at the moment.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Popular Books</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Book</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Borrowed Times</th>
+                                    <th>Available</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in popular_books %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 45px;">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                            {% endif %}
+                                            <span>{{ book.title }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ book.author }}</td>
+                                    <td>{{ book.genre }}</td>
+                                    <td><span class="badge bg-primary rounded-pill">{{ book.borrow_count }}</span></td>
+                                    <td>
+                                        <span class="badge bg-{% if book.available > 0 %}success{% else %}danger{% endif %}">
+                                            {{ book.available }} / {{ book.quantity }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if book.available > 0 %}
+                                            <a href="{% url 'issue_book' book.pk %}" class="btn btn-sm btn-outline-success" title="Issue">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <p class="text-muted mb-0">No borrowing history available yet.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-book me-2"></i>Manage Books</h5>
+                    <a href="{% url 'add_book' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Add New Book
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Available</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in books %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 45px;">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                            {% endif %}
+                                            <span>{{ book.title }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ book.author }}</td>
+                                    <td>{{ book.genre }}</td>
+                                    <td>{{ book.available }}</td>
+                                    <td>{{ book.total_copies }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'edit_book' book.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'delete_book' book.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a href="{% url 'issue_book' book.pk %}" class="btn btn-sm btn-outline-success" title="Issue">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-0">No books in the library yet.</p>
+                                        <a href="{% url 'add_book' %}" class="btn btn-primary mt-3">
+                                            <i class="fas fa-plus me-1"></i>Add New Book
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{% url 'book_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>View All Books
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Circulation Management Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Circulation Management</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Pending Borrow Requests</h6>
+                            <span class="badge bg-primary rounded-pill">{{ pending_requests.count }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Book</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in pending_requests %}
+                                        <tr>
+                                            <td>{{ request.user.username }}</td>
+                                            <td>{{ request.book.title }}</td>
+                                            <td>{{ request.borrow_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'manage_request' request.id 'approve' %}" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-check me-1"></i>Approve
+                                                    </a>
+                                                    <a href="{% url 'manage_request' request.id 'reject' %}" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-times me-1"></i>Reject
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center py-3">
+                                                <p class="text-muted mb-0">No pending requests at the moment.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Overdue Books</h6>
+                            <span class="badge bg-danger rounded-pill">{{ overdue_books.count }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Book</th>
+                                            <th>Due Date</th>
+                                            <th>Days Overdue</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for borrow in overdue_books %}
+                                        <tr>
+                                            <td>{{ borrow.user.username }}</td>
+                                            <td>{{ borrow.book.title }}</td>
+                                            <td>
+                                                <span class="text-danger">{{ borrow.due_date|date:"M d, Y" }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-danger">
+                                                    {{ borrow.due_date|timeuntil }} overdue
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'return_book' borrow.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-undo me-1"></i>Return
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-3">
+                                                <p class="text-muted mb-0">No overdue books at the moment.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Reports</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-book fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">Book Reports</h5>
+                            <p class="card-text">View detailed statistics about book popularity and usage.</p>
+                            <a href="{% url 'generate_report' %}?type=books" class="btn btn-outline-primary">View Report</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">User Reports</h5>
+                            <p class="card-text">View active users and their borrowing patterns.</p>
+                            <a href="{% url 'generate_report' %}?type=users" class="btn btn-outline-primary">View Report</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">Activity Reports</h5>
+                            <p class="card-text">View recent borrowing activity and trends.</p>
+                            <a href="{% url 'generate_report' %}?type=activity" class="btn btn-outline-primary">View Report</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Management Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Book Management</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-plus-circle fa-3x mb-3 text-success"></i>
+                            <h5 class="card-title">Add Book</h5>
+                            <p class="card-text">Add a new book to the library inventory.</p>
+                            <a href="{% url 'add_book' %}" class="btn btn-outline-success">Add New Book</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-edit fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">Manage Books</h5>
+                            <p class="card-text">Edit, update or delete existing books.</p>
+                            <a href="{% url 'book_list' %}" class="btn btn-outline-primary">View All Books</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-book-medical fa-3x mb-3 text-info"></i>
+                            <h5 class="card-title">Book Requests</h5>
+                            <p class="card-text">Review and manage user book requests.</p>
+                            <a href="{% url 'manage_book_requests' %}" class="btn btn-outline-info">Manage Requests</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-paper-plane fa-3x mb-3 text-warning"></i>
+                            <h5 class="card-title">Issue Book</h5>
+                            <p class="card-text">Issue books directly to users.</p>
+                            <a href="{% url 'book_list' %}" class="btn btn-outline-warning">Select Book to Issue</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

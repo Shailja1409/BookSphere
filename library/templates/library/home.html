@@ -1,0 +1,100 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron text-center py-5 bg-light rounded-3 mb-5">
+    <h1 class="display-4">Welcome to BookSphere</h1>
+    <p class="lead">Your Digital Library Management System</p>
+    <hr class="my-4">
+    <p>Browse our collection, borrow books, and manage your reading journey.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'book_list' %}" role="button">Browse Books</a>
+</div>
+
+<!-- Popular Books Section -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-star me-2 text-warning"></i>Popular Books</h2>
+        <a href="{% url 'book_list' %}" class="btn btn-outline-primary btn-sm">View All Books</a>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        {% for book in popular_books %}
+        <div class="col">
+            <div class="card h-100 book-card">
+                {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 250px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+                    <i class="fas fa-book fa-3x"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text text-muted">By {{ book.author }}</p>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary rounded-pill">
+                            <i class="fas fa-bookmark me-1"></i>{{ book.borrow_count }} Borrows
+                        </span>
+                        <span class="badge bg-{% if book.available > 0 %}success{% else %}danger{% endif %}">
+                            {{ book.available }}/{{ book.quantity }} Available
+                        </span>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-info-circle me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No book borrowing data available yet.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<h2 class="mb-4">Latest Additions</h2>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for book in books %}
+    <div class="col">
+        <div class="card h-100 book-card">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 300px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="fas fa-book fa-3x"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ book.title }}</h5>
+                <p class="card-text">
+                    <small class="text-muted">By {{ book.author }}</small>
+                </p>
+                <p class="card-text">{{ book.description|truncatewords:30 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'book_detail' book.pk %}" class="btn btn-primary">View Details</a>
+                    <span class="badge bg-{% if book.available > 0 %}success{% else %}danger{% endif %}">
+                        {{ book.available }}/{{ book.quantity }} Available
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p>No books available at the moment.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="text-center mt-5">
+    <a href="{% url 'book_list' %}" class="btn btn-outline-primary btn-lg">View All Books</a>
+</div>
+{% endblock %} 

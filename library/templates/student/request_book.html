@@ -1,0 +1,90 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Request a New Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-book-medical me-2"></i>Request a New Book
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Please provide details about the book you would like the library to acquire. 
+                        The librarian will review your request and you will be notified when a decision is made.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Book Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                value="{{ form_data.title|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Author *</label>
+                            <input type="text" class="form-control" id="author" name="author" required
+                                value="{{ form_data.author|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="isbn" class="form-label">ISBN (if known)</label>
+                            <input type="text" class="form-control" id="isbn" name="isbn"
+                                value="{{ form_data.isbn|default:'' }}">
+                            <div class="form-text">
+                                International Standard Book Number, if you have it available.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="genre" class="form-label">Genre *</label>
+                            <select class="form-select" id="genre" name="genre" required>
+                                <option value="" disabled {% if not form_data.genre %}selected{% endif %}>Select a genre</option>
+                                <option value="Fiction" {% if form_data.genre == 'Fiction' %}selected{% endif %}>Fiction</option>
+                                <option value="Non-Fiction" {% if form_data.genre == 'Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                                <option value="Mystery" {% if form_data.genre == 'Mystery' %}selected{% endif %}>Mystery</option>
+                                <option value="Science Fiction" {% if form_data.genre == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                                <option value="Fantasy" {% if form_data.genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                                <option value="Biography" {% if form_data.genre == 'Biography' %}selected{% endif %}>Biography</option>
+                                <option value="History" {% if form_data.genre == 'History' %}selected{% endif %}>History</option>
+                                <option value="Self-Help" {% if form_data.genre == 'Self-Help' %}selected{% endif %}>Self-Help</option>
+                                <option value="Business" {% if form_data.genre == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Academic" {% if form_data.genre == 'Academic' %}selected{% endif %}>Academic/Textbook</option>
+                                <option value="Other" {% if form_data.genre == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for Request *</label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3" required>{{ form_data.reason|default:'' }}</textarea>
+                            <div class="form-text">
+                                Please explain why you are interested in this book and why the library should add it to the collection.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2">{{ form_data.notes|default:'' }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'user_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
